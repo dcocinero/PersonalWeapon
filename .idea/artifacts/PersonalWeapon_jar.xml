@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PersonalWeapon:jar">
+    <output-path>$USER_HOME$/Desktop/Sv pruebas/plugins</output-path>
+    <root id="archive" name="PersonalWeapon.jar">
+      <element id="module-output" name="PersonalWeapon" />
+    </root>
+  </artifact>
+</component>

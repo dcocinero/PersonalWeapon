@@ -1,0 +1,12 @@
+name: PersonalWeapon
+version: '1.0-SNAPSHOT'
+main: net.wax0n.personalweapon.PersonalWeapon
+api-version: '1.20'
+commands:
+  createweapon:
+    usage: /createweapon name
+    description: Create a personal weapon
+  pweapon:
+    usage: /pweapon <rename/texture/info/delete>
+    description: Use this for all :3
+    aliases: pw
