@@ -9,6 +9,7 @@ import net.wax0n.personalweapon.weapon.Weapon;
 import net.wax0n.personalweapon.weapon.WeaponListener;
 import net.wax0n.personalweapon.weapon.WeaponManager;
 import net.wax0n.personalweapon.ymls.ConfigMobXp;
+import net.wax0n.personalweapon.ymls.LoadGroupsPerms;
 import net.wax0n.personalweapon.ymls.LoadItemTextures;
 import net.wax0n.personalweapon.ymls.SaveWeapons;
 import org.bukkit.Bukkit;
@@ -37,14 +38,18 @@ public final class PersonalWeapon extends JavaPlugin {
         LoadItemTextures loadItemTextures = new LoadItemTextures(this);
         ConfigMobXp configMobXp = new ConfigMobXp(this);
 
+
+        // timers
+        LoadGroupsPerms loadGroupsPerms = new LoadGroupsPerms(this);
+
         //weapons
         WeaponListener weaponListener = new WeaponListener(weaponManager, saveWeapons, configMobXp);
         Bukkit.getPluginManager().registerEvents(weaponListener, this);
 
         // commandos
-        this.getCommand("createweapon").setExecutor(new CreateWeapon(guiManager, weaponManager, loadItemTextures));
-        this.getCommand("pweapon").setExecutor(new PWeapon(guiManager, weaponManager, saveWeapons));
-        this.getCommand("pweapon").setTabCompleter(new PWeapon(guiManager, weaponManager, saveWeapons));
+        this.getCommand("createweapon").setExecutor(new CreateWeapon(guiManager, weaponManager, loadItemTextures,loadGroupsPerms));
+        this.getCommand("pweapon").setExecutor(new PWeapon(guiManager, weaponManager, saveWeapons, loadGroupsPerms, loadItemTextures));
+        this.getCommand("pweapon").setTabCompleter(new PWeapon(guiManager, weaponManager, saveWeapons, loadGroupsPerms, loadItemTextures));
 
         //on reboot loadweapons for online player
         for (Player player : Bukkit.getOnlinePlayers()){
@@ -54,7 +59,8 @@ public final class PersonalWeapon extends JavaPlugin {
             }
         }
 
-        BukkitTask saveTask = new SaveTask(this, weaponManager, saveWeapons).runTaskTimer(this, 36000L, 36000L);
+        BukkitTask saveTask = new SaveTask(this, weaponManager, saveWeapons).runTaskTimer(this, 36000L,
+                36000L);
     }
 
     @Override
@@ -64,7 +70,8 @@ public final class PersonalWeapon extends JavaPlugin {
             if (weaponManager.hasWeapons(player)){
                 try {
                     weaponManager.removeWeaponItem(player);
-                    saveWeapons.savePlayerWeapons(player, weaponManager.getListWeapons(player), weaponManager.getSelectedWeapon(player));
+                    saveWeapons.savePlayerWeapons(player, weaponManager.getListWeapons(player),
+                            weaponManager.getSelectedWeapon(player));
                 } catch (Exception e){
                     Bukkit.getLogger().log(Level.SEVERE, player.getName() + "Couldnt save weapon");
                 }

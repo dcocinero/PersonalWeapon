@@ -33,7 +33,8 @@ public class SaveWeapons extends YmlConstructor{
 
             setWeaponYML(PlayerUUID.getUUID(player).toString(), i, weapon.getName(), weapon.getLevel(), weapon.getXp(), weapon.getDamagePoints(),
                     weapon.getSpeedPoints(), weapon.getSmitePoints(), weapon.getArthropodPoints(), weapon.getKnockbackPoints(),
-                    weapon.getLootingPoints(), weapon.getFirePoints(), weapon.getSweepPoints(), weapon.getFreePoints(), weapon.getType().name(), modelData);
+                    weapon.getLootingPoints(), weapon.getFirePoints(), weapon.getSweepPoints(), weapon.getFreePoints(),
+                    weapon.getType().name(), modelData, weapon.getResetSkillTime(), weapon.getResetTextureTime());
         }
         this.configFile.set("Players." + PlayerUUID.getUUID(player).toString() + ".selected", indexSelected);
         this.saveConfig();
@@ -41,7 +42,8 @@ public class SaveWeapons extends YmlConstructor{
 
     private void setWeaponYML(String UUID, int index, String nameWeapon, int levelWeapon, double xp, int damagePoints,
                               int speedPoints, int smitePoints, int arthropodPoints, int knockbackPoints, int lootingPoints,
-                              int firePoints, int sweepPoints, int freePoints, String material, int modelData){
+                              int firePoints, int sweepPoints, int freePoints, String material, int modelData,
+                              long resetSkillTime, long resetTextureTime){
         this.configFile.set("Players." + UUID + "." + index + ".name", nameWeapon);
         this.configFile.set("Players." + UUID + "." + index + ".material", material);
         this.configFile.set("Players." + UUID + "." + index + ".level", levelWeapon);
@@ -55,6 +57,8 @@ public class SaveWeapons extends YmlConstructor{
         this.configFile.set("Players." + UUID + "." + index + ".sweep", sweepPoints);
         this.configFile.set("Players." + UUID + "." + index + ".fire",firePoints);
         this.configFile.set("Players." + UUID + "." + index + ".freePoints", freePoints);
+        this.configFile.set("Players." + UUID + "." + index + ".resetSkillTime", resetSkillTime);
+        this.configFile.set("Players." + UUID + "." + index + ".resetTextureTime", resetTextureTime);
 
         if (modelData != 0){
             this.configFile.set("Players." + UUID + "." + index + ".modelData", modelData);
@@ -85,8 +89,12 @@ public class SaveWeapons extends YmlConstructor{
                     int sweep = index.getInt("sweep");
                     int freePoints = index.getInt("freePoints");
                     int customModeldata = index.getInt("modelData");
+                    long resetSkillTime = index.getLong("resetSkillTime");
+                    long resetTextureTime = index.getLong("resetTextureTime");
                     try {
-                        Weapon weapon = new Weapon(new ItemStack(Material.getMaterial(material)), name, level, xp, freePoints, damage, speed, smite, arthropod, fire, looting, sweep, knockback, customModeldata, namespacedKey);
+                        Weapon weapon = new Weapon(new ItemStack(Material.getMaterial(material)), name, level, xp,
+                                freePoints, damage, speed, smite, arthropod, fire, looting, sweep, knockback,
+                                customModeldata, resetSkillTime, resetTextureTime, namespacedKey);
                         listWeapons.add(weapon);
                     } catch (Exception e) {
                         player.sendMessage(ChatColor.RED + "Error loading weapon");

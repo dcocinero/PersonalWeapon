@@ -2,6 +2,7 @@ package net.wax0n.personalweapon.weapon;
 
 import net.wax0n.personalweapon.utils.CostsAndLimits;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -13,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.checkerframework.checker.units.qual.A;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +40,8 @@ public class Weapon extends ItemStack {
     private int sweepPoints;
     private int knockbackPoints;
     private int customModelData;
+    private long resetSkillTime;
+    private long resetTextureTime;
 
     private NamespacedKey namespacedKey;
 
@@ -48,19 +52,17 @@ public class Weapon extends ItemStack {
         this.name = ChatColor.translateAlternateColorCodes('&', name);
         this.level = 1;
         this.namespacedKey = namespacedKey;
+        this.resetSkillTime = 0;
+        this.resetTextureTime = 0;
 
         setXpToUp();
         setMetaItem();
     }
 
-    public Weapon (ItemStack baseModel){
-        super(baseModel);
-    }
-
     // load weapon
     public Weapon(ItemStack baseModel, String name, int level, double xp, int freePoints, int damagePoints, int speedPoints,
                   int smitePoints, int arthropodPoints, int firePoints, int lootingPoints, int sweepPoints,
-                  int knockbackPoints, int customModelData, NamespacedKey namespacedKey) {
+                  int knockbackPoints, int customModelData, long resetSkillTime, long resetTextureTime, NamespacedKey namespacedKey) {
         super(baseModel);
         this.name = ChatColor.translateAlternateColorCodes('&', name);
         this.level = level;
@@ -76,6 +78,8 @@ public class Weapon extends ItemStack {
         this.knockbackPoints = knockbackPoints;
         this.namespacedKey = namespacedKey;
         this.customModelData = customModelData;
+        this.resetSkillTime = resetSkillTime;
+        this.resetTextureTime = resetTextureTime;
 
         setXpToUp();
         setMetaItem();
@@ -445,6 +449,39 @@ public class Weapon extends ItemStack {
             total += CostsAndLimits.getSweepPointsCost(sweep-1);
             sweep--;
         }
-        this.usedPoints = total;
+        usedPoints = total;
+    }
+
+    public void resetPoints(){
+        if (usedPoints == 0) return;
+        this.freePoints = this.usedPoints + this.freePoints;
+        this.usedPoints = 0;
+        this.damagePoints = 0;
+        this.speedPoints = 0;
+        this.firePoints = 0;
+        this.knockbackPoints = 0;
+        this.smitePoints = 0;
+        this.lootingPoints = 0;
+        this.arthropodPoints = 0;
+        this.sweepPoints = 0;
+        this.resetSkillTime = Instant.now().getEpochSecond();
+    }
+
+    public long getResetSkillTime(){
+        return resetSkillTime;
+    }
+
+    public long getResetTextureTime(){
+        return resetTextureTime;
+    }
+
+    public void changeTexture(ItemStack baseModel){
+        this.setType(baseModel.getType());
+        this.customModelData = baseModel.getItemMeta().getCustomModelData();
+        setMetaItem();
+    }
+
+    public void setTimeResetTexture(){
+        this.resetTextureTime = Instant.now().getEpochSecond();
     }
 }

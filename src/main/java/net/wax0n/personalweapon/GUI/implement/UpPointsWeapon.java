@@ -5,6 +5,7 @@ import net.wax0n.personalweapon.GUI.InventoryGUI;
 import net.wax0n.personalweapon.utils.CostsAndLimits;
 import net.wax0n.personalweapon.weapon.Weapon;
 import net.wax0n.personalweapon.weapon.WeaponManager;
+import net.wax0n.personalweapon.ymls.LoadGroupsPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -21,10 +22,12 @@ import java.util.List;
 public class UpPointsWeapon extends InventoryGUI {
 
     private final WeaponManager weaponManager;
+    private final LoadGroupsPerms loadGroupsPerms;
     private final int invSize = 3 * 9;
 
-    public UpPointsWeapon(WeaponManager weaponManager) {
+    public UpPointsWeapon(WeaponManager weaponManager, LoadGroupsPerms loadGroupsPerms) {
         this.weaponManager = weaponManager;
+        this.loadGroupsPerms = loadGroupsPerms;
     }
 
     @Override
@@ -61,6 +64,15 @@ public class UpPointsWeapon extends InventoryGUI {
                 CostsAndLimits.getSweepPointsCost(weapon.getSweepPoints()));
         ItemStack freePoints = makeButton(Material.NETHER_STAR, ChatColor.AQUA + "FreePoints: " + weapon.getFreePoints(), ChatColor.RED + "Points used: " + weapon.getUsedPoints());
 
+        long groupTimer = loadGroupsPerms.getResetSkillTimer(player);
+        ItemStack reset;
+        if (weaponManager.checkWeaponResetSkillTimer(player, groupTimer)){
+            reset = makeButton(Material.BARRIER, ChatColor.DARK_RED + "Reset Points " + weapon.getUsedPoints(),
+                    ChatColor.GREEN + "Available");
+        }else {
+            reset = makeButton(Material.BARRIER, ChatColor.DARK_RED + "Reset Points " + weapon.getUsedPoints(),
+                    ChatColor.GREEN + "Time left: " + LoadGroupsPerms.segToStringTime(weaponManager.leftResetTime(player, groupTimer)));
+        }
 
         this.addButton(0, createTextureButton(damageUp, "damage"));
         this.addButton(2, createTextureButton(speedUp, "speed"));
@@ -71,6 +83,7 @@ public class UpPointsWeapon extends InventoryGUI {
         this.addButton(24, createTextureButton(arthropodUp, "arthropod"));
         this.addButton(26, createTextureButton(sweepUp, "sweep"));
         this.addButton(13, createTextureButton(freePoints, "freepoints"));
+        this.addButton(22, createTextureButton(reset, "reset"));
 
         super.decorate(player);
     }
@@ -81,6 +94,24 @@ public class UpPointsWeapon extends InventoryGUI {
                     Player player = (Player) event.getWhoClicked();
                     Weapon weapon = weaponManager.getWeapon(player);
                     if (category.equals("freepoints")){
+                        return;
+                    }
+                    if (category.equals("reset")){
+                        long timer = loadGroupsPerms.getResetSkillTimer(player);
+                        if (!weaponManager.checkWeaponResetSkillTimer(player, timer)){
+                            player.playSound(player.getLocation(), Sound.ENTITY_BLAZE_HURT, 10, 29);
+                            player.sendMessage(ChatColor.DARK_RED + "U cant use this now. Time left: " +
+                                    LoadGroupsPerms.segToStringTime(weaponManager.leftResetTime(player, timer)));
+                            return;
+                        }
+                        if (weapon.getUsedPoints() == 0){
+                            player.playSound(player.getLocation(), Sound.ENTITY_BLAZE_HURT, 10, 29);
+                            player.sendMessage(ChatColor.DARK_RED + "U dont have points to reset");
+                            return;
+                        }
+                        weaponManager.resetSelectedWeapon(player);
+                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 29);
+                        this.decorate(player);
                         return;
                     }
                     Boolean canUpdate = weapon.updatePoint(category);

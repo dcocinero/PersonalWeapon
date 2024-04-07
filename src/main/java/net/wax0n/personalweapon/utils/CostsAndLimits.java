@@ -65,7 +65,7 @@ public class CostsAndLimits {
         return 8;
     }
     public static int getLimitDamage(){
-        return 60;
+        return 63;
     }
     public static int getLimitSpeed(){
         return 14;

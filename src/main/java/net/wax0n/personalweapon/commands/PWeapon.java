@@ -1,11 +1,16 @@
 package net.wax0n.personalweapon.commands;
 
 import net.wax0n.personalweapon.GUI.GUIManager;
+import net.wax0n.personalweapon.GUI.implement.ChangeTexture;
+import net.wax0n.personalweapon.GUI.implement.SelectWeapon;
 import net.wax0n.personalweapon.GUI.implement.UpPointsWeapon;
 import net.wax0n.personalweapon.weapon.WeaponManager;
+import net.wax0n.personalweapon.ymls.LoadGroupsPerms;
+import net.wax0n.personalweapon.ymls.LoadItemTextures;
 import net.wax0n.personalweapon.ymls.SaveWeapons;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -19,11 +24,16 @@ public class PWeapon implements TabExecutor {
     WeaponManager weaponManager;
     GUIManager guiManager;
     SaveWeapons saveWeapons;
+    LoadGroupsPerms loadGroupsPerms;
+    LoadItemTextures loadItemTextures;
 
-    public PWeapon(GUIManager guiManager, WeaponManager weaponManager, SaveWeapons saveWeapons) {
+    public PWeapon(GUIManager guiManager, WeaponManager weaponManager, SaveWeapons saveWeapons,
+                   LoadGroupsPerms loadGroupsPerms, LoadItemTextures loadItemTextures) {
         this.guiManager = guiManager;
         this.weaponManager = weaponManager;
         this.saveWeapons = saveWeapons;
+        this.loadGroupsPerms = loadGroupsPerms;
+        this.loadItemTextures = loadItemTextures;
     }
 
     @Override
@@ -45,8 +55,15 @@ public class PWeapon implements TabExecutor {
             } else if (args.length == 1){
                 switch (args[0]) {
                     case "texture":
-                        //TODO
-                        playerSendMessage(player, "Not implemented yet");
+                        long timer = loadGroupsPerms.getResetTextureTimer(player);
+                        if (!weaponManager.checkWeaponResetTextureTimer(player, timer)){
+                            player.playSound(player.getLocation(), Sound.ENTITY_BLAZE_HURT, 10, 29);
+                            player.sendMessage(ChatColor.DARK_RED + "U cant use this now. Time left: " +
+                                    LoadGroupsPerms.segToStringTime(weaponManager.leftTextureTime(player, timer)));
+                            break;
+                        }
+                        ChangeTexture changeTexture = new ChangeTexture(weaponManager, loadItemTextures, 1);
+                        guiManager.openGUI(changeTexture, player);
                         break;
 
                     case "delete":
@@ -66,12 +83,12 @@ public class PWeapon implements TabExecutor {
                         if (weaponManager.getAmountWeapon(player) == 1){
                             playerSendMessage(player,  "U dont have any other weapon");
                         } else {
-                            // TODO
-                            playerSendMessage(player, "Not implemented yet");
+                            SelectWeapon selectWeapon = new SelectWeapon(weaponManager);
+                            guiManager.openGUI(selectWeapon, player);
                         }
                         break;
                     case "update":
-                        UpPointsWeapon upPointsWeapon = new UpPointsWeapon(weaponManager);
+                        UpPointsWeapon upPointsWeapon = new UpPointsWeapon(weaponManager, loadGroupsPerms);
                         guiManager.openGUI(upPointsWeapon, player);
                         break;
 
@@ -139,6 +156,7 @@ public class PWeapon implements TabExecutor {
             tabList.add("texture");
             tabList.add("update");
             tabList.add("delete");
+            tabList.add("select");
             return tabList;
         }
 

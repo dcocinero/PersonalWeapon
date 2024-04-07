@@ -11,6 +11,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class WeaponManager {
     private final NamespacedKey namespacedKey;
     private final HashMap<UUID, ArrayList<Weapon>> listWeapons;
     private final HashMap<UUID, Integer> selectedWeapon;
+
 
     public WeaponManager(NamespacedKey namespacedKey) {
         this.namespacedKey = namespacedKey;
@@ -54,7 +56,7 @@ public class WeaponManager {
     public Weapon getWeapon(Player player){
         UUID uuid = PlayerUUID.getUUID(player);
         if (listWeapons.get(uuid) == null || listWeapons.get(uuid).isEmpty()){
-            return new Weapon(new ItemStack(Material.WHEAT_SEEDS));
+            throw new RuntimeException("Player doesnt have any weapon");
         }
         selectedWeapon.putIfAbsent(uuid, 0);
         return listWeapons.get(uuid).get(selectedWeapon.get(uuid));
@@ -204,5 +206,39 @@ public class WeaponManager {
         UUID uuid = PlayerUUID.getUUID(player);
         listWeapons.put(uuid, weapons);
         selectedWeapon.put(uuid, selectedIndex);
+    }
+
+    public void resetSelectedWeapon(Player player){
+        UUID uuid = PlayerUUID.getUUID(player);
+        selectedWeapon.putIfAbsent(uuid, 0);
+        listWeapons.get(uuid).get(selectedWeapon.get(uuid)).resetPoints();
+    }
+
+    public Boolean checkWeaponResetSkillTimer(Player player, long needTime){
+        Weapon weapon = getWeapon(player);
+        long nowTime = Instant.now().getEpochSecond();
+        return nowTime - weapon.getResetSkillTime() >= needTime;
+    }
+
+    public Boolean checkWeaponResetTextureTimer(Player player, long needTime){
+        Weapon weapon = getWeapon(player);
+        long nowTime = Instant.now().getEpochSecond();
+        return nowTime - weapon.getResetTextureTime() >= needTime;
+    }
+
+    public long leftResetTime(Player player, long timer){
+        Weapon weapon = getWeapon(player);
+        long nowTime = Instant.now().getEpochSecond();
+        return timer - (nowTime - weapon.getResetSkillTime());
+    }
+
+    public long leftTextureTime(Player player, long timer){
+        Weapon weapon = getWeapon(player);
+        long nowTime = Instant.now().getEpochSecond();
+        return timer - (nowTime - weapon.getResetTextureTime());
+    }
+
+    public void changeTextureWeapon(Player player, ItemStack item){
+        getWeapon(player).changeTexture(item);
     }
 }
